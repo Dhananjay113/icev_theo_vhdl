@@ -1,0 +1,48 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity SpeedDetection is
+    Port ( clk : in STD_LOGIC;
+           reset : in STD_LOGIC;
+           sensor_pulse : in STD_LOGIC;
+           speed : out INTEGER range 0 to 100); -- Speed in arbitrary units
+end SpeedDetection;
+
+architecture Behavioral of SpeedDetection is
+    signal counter : INTEGER range 0 to 100 := 0;
+    signal prev_sensor_pulse : STD_LOGIC := '0';
+    signal time_measurement : INTEGER := 0;
+    constant CLOCK_FREQ : INTEGER := 50_000_000; -- Example clock frequency (50 MHz)
+
+begin
+    process(clk, reset)
+    begin
+        if reset = '1' then
+            counter <= 0;
+            prev_sensor_pulse <= '0';
+            time_measurement <= 0;
+        elsif rising_edge(clk) then
+            if sensor_pulse = '1' and prev_sensor_pulse = '0' then
+                -- Rising edge of the sensor pulse (object detected)
+                counter <= 0;
+            elsif sensor_pulse = '0' and prev_sensor_pulse = '1' then
+                -- Falling edge of the sensor pulse (object passed)
+                time_measurement <= counter;
+            end if;
+
+            if counter < CLOCK_FREQ then
+                counter <= counter + 1;
+            else
+                counter <= 0;
+            end if;
+
+            prev_sensor_pulse <= sensor_pulse;
+        end if;
+    end process;
+
+    -- Calculate speed based on time_measurement
+    speed <= CLOCK_FREQ / time_measurement;
+
+end Behavioral;
