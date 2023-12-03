@@ -1,0 +1,40 @@
+-- ArithmeticUnit.vhdl
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity ArithmeticUnit is
+    Port ( A, B : in STD_LOGIC_VECTOR(3 downto 0);
+           Operation : in STD_LOGIC; -- '0' for addition, '1' for subtraction
+           Result : out STD_LOGIC_VECTOR(3 downto 0);
+           Overflow : out STD_LOGIC;
+           CarryOut : out STD_LOGIC);
+end ArithmeticUnit;
+
+architecture Behavioral of ArithmeticUnit is
+    signal TempResult : STD_LOGIC_VECTOR(4 downto 0);
+    signal Carry : STD_LOGIC;
+begin
+    process(A, B, Operation)
+    begin
+        if Operation = '0' then
+            -- Addition
+            TempResult <= ('0' & A) + ('0' & B);
+        else
+            -- Subtraction
+            TempResult <= ('0' & A) - ('0' & B);
+        end if;
+
+        Carry <= TempResult(4);
+        Result <= TempResult(3 downto 0);
+        
+        -- Overflow detection for signed operations
+        Overflow <= (not TempResult(4) and (A(3) = '0' and B(3) = '0' and Result(3) = '1')) or
+                    (TempResult(4) and (A(3) = '1' and B(3) = '1' and Result(3) = '0'));
+                    
+        -- Carry out for unsigned operations
+        CarryOut <= Carry when Operation = '0' else not Carry;
+    end process;
+end Behavioral;
