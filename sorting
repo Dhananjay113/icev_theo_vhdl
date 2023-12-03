@@ -1,0 +1,42 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity SortingNetwork is
+    Port ( A : in STD_LOGIC_VECTOR(3 downto 0);
+           SortedA : out STD_LOGIC_VECTOR(3 downto 0));
+end SortingNetwork;
+
+architecture Behavioral of SortingNetwork is
+    signal Wires : array(0 to 3, 0 to 2) of STD_LOGIC;
+begin
+    process(A)
+        variable tmp : STD_LOGIC_VECTOR(3 downto 0);
+    begin
+        tmp := A;
+
+        -- Stage 1
+        for i in 0 to 2 loop
+            Wires(0, i) <= tmp(i) xor tmp(i + 1);
+        end loop;
+        Wires(0, 3) <= tmp(3);
+
+        -- Stage 2
+        for i in 0 to 1 loop
+            Wires(1, i) <= Wires(0, i) xor Wires(0, i + 2);
+            Wires(1, i + 2) <= Wires(0, i + 2);
+        end loop;
+
+        -- Stage 3
+        for i in 0 to 3 loop
+            Wires(2, i) <= Wires(1, i) xor Wires(1, i + 1);
+        end loop;
+
+        -- Output
+        SortedA(0) <= Wires(2, 0);
+        SortedA(1) <= Wires(2, 1);
+        SortedA(2) <= Wires(2, 2);
+        SortedA(3) <= Wires(2, 3);
+    end process;
+end Behavioral;
